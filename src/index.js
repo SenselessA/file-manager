@@ -5,7 +5,6 @@ import * as zlib from "zlib";
 import { pipeline } from 'stream'
 
 let userName = '';
-let homeDirname = os.homedir()
 let currentDirName = os.homedir()
 
 let invalidInputError = new Error('Invalid input')
@@ -25,7 +24,6 @@ process.on('exit', () => {
 
 process.stdin.on('data', data => {
     let stringData = data.toString().trim();
-    // console.log('StringData:::: ', stringData);
 
     try {
         switch (stringData) {
@@ -134,7 +132,7 @@ process.stdin.on('data', data => {
 
                 pipeline(source, bzip, destination, (err) => {
                     if (err) {
-                        console.error('An error occurred:', err);
+                        throw operationFailedError;
                     }
 
                     console.log('file compressed')
@@ -151,7 +149,7 @@ process.stdin.on('data', data => {
 
                 pipeline(source, unbzip, destination, (err) => {
                     if (err) {
-                        console.error('An error occurred:', err);
+                        throw operationFailedError;
                     }
 
                     console.log('file decompressed')
