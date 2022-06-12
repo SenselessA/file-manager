@@ -1,6 +1,8 @@
 import os from "os";
 import * as path from "path";
 import * as fs from "fs";
+import * as zlib from "zlib";
+import { pipeline } from 'stream'
 
 let userName = '';
 let homeDirname = os.homedir()
@@ -111,6 +113,49 @@ process.stdin.on('data', data => {
             }
             case `os --architecture`: {
                 console.log(os.arch())
+                break;
+            }
+            case `hash ${stringData.split(" ")[1]}`: {
+                let pathToFile = stringData.split(" ")[1];
+
+                const file = fs.readFileSync(pathToFile);
+                const hash = crypto.createHash('sha256').update(file).digest('hex');
+                console.log(hash)
+
+                break;
+            }
+            case `compress ${stringData.split(" ")[1]} ${stringData.split(" ")[2]}`: {
+                let pathToFile = stringData.split(" ")[1];
+                let pathToDest = stringData.split(" ")[2];
+
+                const bzip = zlib.createBrotliCompress();
+                const source = fs.createReadStream(pathToFile);
+                const destination = fs.createWriteStream(pathToDest);
+
+                pipeline(source, bzip, destination, (err) => {
+                    if (err) {
+                        console.error('An error occurred:', err);
+                    }
+
+                    console.log('file compressed')
+                });
+                break;
+            }
+            case `decompress ${stringData.split(" ")[1]} ${stringData.split(" ")[2]}`: {
+                let pathToFile = stringData.split(" ")[1];
+                let pathToDest = stringData.split(" ")[2];
+
+                const unbzip = zlib.createBrotliDecompress();
+                const source = fs.createReadStream(pathToFile);
+                const destination = fs.createWriteStream(pathToDest);
+
+                pipeline(source, unbzip, destination, (err) => {
+                    if (err) {
+                        console.error('An error occurred:', err);
+                    }
+
+                    console.log('file decompressed')
+                });
                 break;
             }
             default:
